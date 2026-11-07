@@ -1,0 +1,63 @@
+# ============================================================
+# video_spider 站点配置
+# 说明:
+#   - match:  页面 URL 包含该关键字即命中此站点规则(也可用 --site <name> 强制指定)
+#   - headers: 该站点需要的额外请求头(Referer、Cookie 等),可选
+#   - extractors: 视频地址提取器,按顺序尝试,第一个有结果的即采用。
+#                 type 支持: regex | css | xpath | json
+#   - exclude_patterns: 排除包含这些关键字的候选地址(广告、跟踪域名),可选
+#
+# 不配置 extractors 时,脚本会自动用通用启发式(查找 <video>/<source> 标签
+# 和 m3u8/mp4 链接)抓取,大多数简单页面无需配置即可使用。
+# ============================================================
+
+# 可选的全局默认请求头(会被站点级 headers 覆盖)
+# default_headers:
+#   User-Agent: "Mozilla/5.0 ..."
+
+sites:
+  # ---------- 示例 1:需要 Referer 且视频藏在 data-src 的站点 ----------
+  - name: example_cdn
+    match: "example-cdn.com"
+    headers:
+      Referer: "https://example-cdn.com/"
+      # Cookie: "session=xxx"      # 需要登录时在这里填
+    extractors:
+      - type: css
+        selector: "video"
+        attribute: "data-src"
+      - type: regex
+        pattern: 'https?://[^\s<>]+\.m3u8[^\s<>]*'
+    exclude_patterns:
+      - "adservice"
+      - "track"
+
+  # ---------- 示例 2:从内嵌 JSON 中取视频地址 ----------
+  - name: example_json
+    match: "example-json.com"
+    extractors:
+      - type: json
+        jsonpath: "data.video.playUrl"
+      - type: json
+        jsonpath: "videoInfo.videos[0].url"
+
+  # ---------- 示例 3:直接匹配 m3u8 直链 ----------
+  - name: example_hls
+    match: "example-hls.com"
+    extractors:
+      - type: regex
+        pattern: 'https?://[^\s<>]+\.m3u8[^\s<>]*'
+    exclude_patterns:
+      - "ads"
+
+  # ---------- B 站:视频地址走官方 API,登录 Cookie 决定清晰度 ----------
+  # 不填 Cookie:最高 480P。
+  # 填 Cookie(浏览器登录 bilibili 后按 F12 → Application → Cookies
+  # 复制 SESSDATA=xxx 这一项即可):普通账号最高 1080P,大会员可到 1080P60/4K。
+  # 脚本检测到 Cookie 会自动使用 WBI 签名请求,获取账号允许的最高画质。
+  - name: bilibili
+    match: "bilibili.com"
+    headers:
+      Referer: "https://www.bilibili.com/"
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+      Cookie: "SESSDATA=在这里填你的SESSDATA"
