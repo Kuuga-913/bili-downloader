@@ -28,3 +28,6 @@ venv/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 本地归档：旧版本、原始目录、测试产物、工作日志（仅本地保存，不推送）
+_archive/
