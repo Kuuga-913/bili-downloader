@@ -13,6 +13,7 @@ downloads/
 *.m4a
 *.m4s
 *.ts
+*.zip
 _selftest_*/
 
 # Python
