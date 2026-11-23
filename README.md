@@ -9,7 +9,11 @@
 - **两个下载内核**
   - `bilibili-downloader/`：B 站专用。支持 `BV` / `av` / 番剧 `ss` / 单集 `ep`、`b23.tv` 短链、Cookie / 扫码登录、DASH 多线程分块下载、ffmpeg 无损合并、ffprobe 校验、试看片段识别、DRM 检测、`--diag` 权限诊断。
   - `video_spider/`：配置驱动的通用爬虫。支持直链（断点续传）、HLS `m3u8`（多线程分片）、B 站 DASH（WBI 签名取高画质）、番剧选集，新增站点只需改 `config.yaml`。
-- **图形界面**：粘贴链接 → 选下载内容 / 画质 / 音质 → 开始下载，实时日志、停止、打开输出目录、扫码登录取 Cookie、调用命令行版。
+- **图形界面（Bili-Pulse Cyber Studio）**：本地轻量级 HTTP 服务 + Edge/Chrome `--app` 独立桌面窗口，零第三方 GUI 依赖（支持 `--no-browser` 与 `--tk` 回退）：
+  - **智能链接嗅探 & 双核切换**：自动识别 `BV` / `av` / `ss` / `ep` / `b23.tv` / `m3u8` / 直链并匹配最佳引擎
+  - **物理弹簧轨道矩阵 & 探测联动**：一键 `--info` 点亮片源真实可用画质与分P列表，支持音视频合并 / 仅视频 / 仅音频切换
+  - **实时声波遥测 & 着色终端**：环形进度仪表 + Canvas 速度响应声波频谱 + `\r` 原地刷新日志 + 最近下载产物快速定位
+  - **Web Audio 合成器音效 & 双主题**：全交互实时程序化音效（可静音）、Obsidian 深色 / Porcelain 浅色双主题与可暂停背景光场
 - **画质**：自动最高 / 8K(127) / 4K(120) / 1080P60(116) / 1080P+(112) / 1080P(80) / 720P(64) / 480P(32) / 360P(16)，取「不超过所选档的最高可用画质」。
 - **音质**：自动最高 / Hi-Res 无损 / 杜比全景声 / 192K / 132K / 64K，按音频流 id 精确匹配，缺失时按码率取最接近的一档。
 - **单轨输出**：仅视频 `标题 (仅视频).mp4`，仅音频 `标题 (仅音频).m4a`，音视频合并 `标题.mp4`。
@@ -19,8 +23,13 @@
 ```
 bili-downloader/
 ├── gui/
-│   ├── bili_downloader_launcher.pyw      图形界面（tkinter，标准库）
+│   ├── bili_downloader_launcher.pyw      本地服务与独立应用窗口启动器
+│   ├── web/
+│   │   ├── index.html                    Bili-Pulse Cyber Studio 页面结构
+│   │   ├── styles.css                    现代化玻璃态双主题与动效样式
+│   │   └── app.js                        Web Audio 音效合成与实时遥测前端
 │   └── start_bili_downloader.bat         Windows 一键启动
+├── start_bili_downloader.bat             根目录一键启动
 ├── bilibili-downloader/
 │   ├── bilibili_dl.py                    专用下载内核
 │   ├── bili_login_qr.py                  扫码登录 → 导出 Cookie

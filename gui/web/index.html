@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <title>Bili-Pulse · B 站音视频下载器</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- 环境光场背景层 -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+    <div class="ambient-grid"></div>
+  </div>
+
+  <div class="app-shell">
+    <!-- 顶部工作室状态栏 -->
+    <header class="studio-header">
+      <div class="brand-lockup">
+        <div class="brand-emblem" aria-hidden="true">
+          <svg viewBox="0 0 36 36" width="36" height="36" fill="none">
+            <rect x="2" y="2" width="32" height="32" rx="10" class="emblem-bg"/>
+            <path d="M11 12.5L14.5 9M25 12.5L21.5 9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <rect x="8" y="12.5" width="20" height="14" rx="4.5" stroke="currentColor" stroke-width="2.1"/>
+            <path d="M15.5 16.8L21.5 19.5L15.5 22.2V16.8Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <h1>Bili-Pulse</h1>
+            <span class="brand-tag">STUDIO</span>
+          </div>
+          <p class="brand-sub">B 站音视频双核下载工作台</p>
+        </div>
+      </div>
+
+      <div class="header-status-cluster">
+        <button type="button" id="btn-env-badge" class="status-pill" popovertarget="env-popover" title="查看本地环境与引擎状态">
+          <span class="status-dot" id="env-dot"></span>
+          <span id="env-summary">环境检测中…</span>
+        </button>
+
+        <button type="button" id="btn-auth-badge" class="status-pill" title="扫码登录或更新 Cookie">
+          <span class="status-dot" id="auth-dot"></span>
+          <span id="auth-summary">登录态检测中…</span>
+        </button>
+      </div>
+
+      <nav class="header-actions" aria-label="全局工具栏">
+        <button type="button" id="btn-diag" class="btn-ghost btn-sm" title="诊断当前账号权限与大会员状态 (--diag)">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+            <path d="M10 2.5L16.5 5.3V9.8C16.5 13.7 13.7 16.9 10 17.8C6.3 16.9 3.5 13.7 3.5 9.8V5.3L10 2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M7.3 10.2L9.2 12.1L13 8.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>权限诊断</span>
+        </button>
+
+        <button type="button" id="btn-qr" class="btn-ghost btn-sm" title="手机 B 站扫码登录并自动同步双核 Cookie">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+            <rect x="3" y="3" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.6"/>
+            <rect x="11.5" y="3" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.6"/>
+            <rect x="3" y="11.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M11.5 12H14V14.5M16.5 12V17H11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span>扫码登录</span>
+        </button>
+
+        <button type="button" id="btn-sound" class="btn-icon" title="切换界面合成器音效" aria-label="切换音效开关">
+          <svg class="icon-sound-on" viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true">
+            <path d="M3.5 8.2H6.8L11.2 4.5V15.5L6.8 11.8H3.5V8.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M14 7.2C15 8.1 15.5 9.1 15.5 10C15.5 10.9 15 11.9 14 12.8M16.2 5C17.8 6.4 18.5 8.1 18.5 10C18.5 11.9 17.8 13.6 16.2 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <svg class="icon-sound-off" viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true" hidden>
+            <path d="M3.5 8.2H6.8L11.2 4.5V15.5L6.8 11.8H3.5V8.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M14 7.5L18 12.5M18 7.5L14 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span class="icon-label" id="sound-label">音效开</span>
+        </button>
+
+        <button type="button" id="btn-motion" class="btn-icon" title="暂停或恢复背景持续动效" aria-label="暂停背景动效">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+            <circle cx="10" cy="10" r="6.8" stroke="currentColor" stroke-width="1.5"/>
+            <path id="motion-icon-path" d="M8.3 7.2V12.8M11.7 7.2V12.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span class="icon-label" id="motion-label">动效</span>
+        </button>
+
+        <button type="button" id="btn-theme" class="btn-icon" title="切换深色 / 浅色外观" aria-label="切换深浅色主题">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true">
+            <path d="M15.8 12.6A6.5 6.5 0 0 1 7.4 4.2A6.5 6.5 0 1 0 15.8 12.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </nav>
+    </header>
+
+    <!-- 环境详情弹出卡片 (Popover API) -->
+    <div id="env-popover" popover class="env-popover">
+      <div class="popover-head">
+        <strong>本地运行环境自检</strong>
+        <button type="button" id="btn-refresh-env" class="btn-mini">刷新</button>
+      </div>
+      <ul id="env-detail-list" class="env-detail-list"></ul>
+    </div>
+
+    <!-- 主工作区：左侧 4 步配置舱 + 右侧遥测仪表盘 -->
+    <main class="workspace-grid">
+      <!-- 左侧配置控制流 -->
+      <section class="control-deck" aria-label="下载配置流程">
+        <!-- Step 1: 链接输入 -->
+        <article class="glass-card step-card" data-step="1">
+          <div class="card-header">
+            <div class="step-heading">
+              <span class="step-badge">01</span>
+              <div>
+                <h2>目标视频链接</h2>
+                <p class="card-sub">支持 BV / av / 番剧 ss / 单集 ep / b23.tv 短链 / m3u8 / 直链</p>
+              </div>
+            </div>
+            <span id="url-type-badge" class="type-chip" hidden>等待输入</span>
+          </div>
+
+          <div class="url-input-group">
+            <label for="url-input" class="sr-only">视频链接</label>
+            <input
+              id="url-input"
+              type="url"
+              class="url-input"
+              placeholder="粘贴 B 站视频链接或媒体直链，回车立即开始…"
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <div class="url-actions">
+              <button type="button" id="btn-paste" class="btn-chip">粘贴</button>
+              <button type="button" id="btn-info" class="btn-chip btn-chip-accent" title="查看可用画质、音质与分P信息 (--info)">探测画质</button>
+              <button type="button" id="btn-clear-url" class="btn-chip" title="清空链接">清空</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Step 2: 双核引擎 -->
+        <article class="glass-card step-card" data-step="2">
+          <div class="card-header">
+            <div class="step-heading">
+              <span class="step-badge">02</span>
+              <div>
+                <h2>选择下载内核</h2>
+                <p class="card-sub" id="engine-hint">B 站资源推荐 Bili-Core，通用网页或 m3u8 推荐 Spider-Core</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="engine-grid" role="radiogroup" aria-label="选择下载内核">
+            <label class="engine-card" id="engine-card-bili">
+              <input type="radio" name="tool" value="bili" class="sr-only" checked>
+              <div class="engine-top">
+                <span class="engine-name">Bili-Core 专用引擎</span>
+                <span class="engine-pill">推荐 B 站</span>
+              </div>
+              <p class="engine-desc">大会员 / 充电专属 / 番剧完整流 · FFmpeg 无损混流 + FFprobe 时长校验</p>
+              <div class="engine-tags">
+                <span>--info 探测</span>
+                <span>--diag 诊断</span>
+                <span>Cookie 解锁</span>
+              </div>
+            </label>
+
+            <label class="engine-card" id="engine-card-spider">
+              <input type="radio" name="tool" value="spider" class="sr-only">
+              <div class="engine-top">
+                <span class="engine-name">Spider-Core 通用引擎</span>
+                <span class="engine-pill">全能直链</span>
+              </div>
+              <p class="engine-desc">直链断点续传 · HLS m3u8 多线程分片 · WBI 签名 · config.yaml 规则</p>
+              <div class="engine-tags">
+                <span>直链 MP4</span>
+                <span>HLS m3u8</span>
+                <span>通用网页</span>
+              </div>
+            </label>
+          </div>
+        </article>
+
+        <!-- Step 3: 下载内容 & 画质音质矩阵 -->
+        <article class="glass-card step-card" data-step="3">
+          <div class="card-header">
+            <div class="step-heading">
+              <span class="step-badge">03</span>
+              <div>
+                <h2>轨道模式与画质规格</h2>
+                <p class="card-sub">取「不超过所选上限的最高可用档」，点击「探测画质」可点亮当前片源可用档位</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 下载内容模式分段滑块 -->
+          <div class="spec-block">
+            <span class="spec-label">输出轨道模式</span>
+            <div class="segmented-control" id="mode-segmented" role="radiogroup" aria-label="下载内容模式">
+              <div class="seg-thumb" aria-hidden="true"></div>
+              <label class="seg-item">
+                <input type="radio" name="mode" value="both" class="sr-only" checked>
+                <span>音视频合并 · MP4</span>
+              </label>
+              <label class="seg-item">
+                <input type="radio" name="mode" value="video" class="sr-only">
+                <span>仅视频轨 · 无声 MP4</span>
+              </label>
+              <label class="seg-item">
+                <input type="radio" name="mode" value="audio" class="sr-only">
+                <span>仅音频轨 · M4A</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 画质上限胶囊矩阵 -->
+          <div class="spec-block" id="quality-section">
+            <div class="spec-label-row">
+              <span class="spec-label">画质上限</span>
+              <span class="spec-note" id="quality-active-note">当前：自动最高</span>
+            </div>
+            <div class="pill-matrix" id="quality-matrix" role="radiogroup" aria-label="视频画质上限"></div>
+          </div>
+
+          <!-- 音质上限胶囊矩阵 -->
+          <div class="spec-block" id="audio-section">
+            <div class="spec-label-row">
+              <span class="spec-label">音质偏好</span>
+              <span class="spec-note" id="audio-active-note">当前：自动最高</span>
+            </div>
+            <div class="pill-matrix" id="audio-matrix" role="radiogroup" aria-label="音频音质偏好"></div>
+          </div>
+
+          <!-- 探测到的分P预览区 -->
+          <div class="episodes-panel" id="episodes-panel" hidden>
+            <div class="spec-label-row">
+              <span class="spec-label">探测到的分P / 剧集（点击快速填入选集）</span>
+              <button type="button" id="btn-clear-ep-pick" class="btn-mini">重置选集</button>
+            </div>
+            <div class="episodes-chips" id="episodes-chips"></div>
+          </div>
+
+          <!-- 高级选项折叠抽屉 -->
+          <div class="advanced-wrapper">
+            <button
+              type="button"
+              id="btn-advanced"
+              class="advanced-toggle"
+              aria-expanded="false"
+              aria-controls="advanced-drawer"
+            >
+              <span>高级参数、分P选集与 Cookie 凭证</span>
+              <svg class="chevron" viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <div id="advanced-drawer" class="advanced-drawer" hidden>
+              <div class="advanced-grid">
+                <div class="field-item">
+                  <label for="pages-input">分P / 集数范围 <code>-p / --ep</code></label>
+                  <input id="pages-input" type="text" placeholder="留空默认全部；如 1,3-5">
+                </div>
+
+                <div class="field-item">
+                  <div class="field-label-row">
+                    <label for="threads-range">并发下载线程数</label>
+                    <output id="threads-value" for="threads-range">8 线程</output>
+                  </div>
+                  <input id="threads-range" type="range" min="1" max="32" step="1" value="8">
+                </div>
+
+                <div class="field-item field-full">
+                  <label for="extra-input">附加 CLI 参数</label>
+                  <input id="extra-input" type="text" placeholder="如：--keep 或 --proxy http://127.0.0.1:7890">
+                </div>
+
+                <div class="field-item field-full">
+                  <div class="field-label-row">
+                    <label for="cookie-input">B 站 Cookie（专用版有效；扫码登录会自动写入）</label>
+                    <div class="cookie-tools">
+                      <button type="button" id="btn-toggle-cookie" class="btn-mini">显示</button>
+                      <button type="button" id="btn-save-cookie" class="btn-mini">保存本地</button>
+                    </div>
+                  </div>
+                  <input id="cookie-input" type="password" placeholder="SESSDATA=...（或点击右上角「扫码登录」）" autocomplete="off">
+                </div>
+
+                <label class="switch-row field-full">
+                  <input id="no-merge-check" type="checkbox" switch>
+                  <span>保留分离音视频轨道（<code>--no-merge</code>，不自动合并为单个 MP4）</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Step 4: 发射控制坞 -->
+        <div class="action-dock">
+          <button type="button" id="btn-start" class="btn-launch">
+            <span class="launch-glow" aria-hidden="true"></span>
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
+              <path d="M10 3V12.5M10 12.5L6.2 8.7M10 12.5L13.8 8.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 14.5V16C4 16.6 4.4 17 5 17H15C15.6 17 16 16.6 16 16V14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span id="btn-start-text">开始下载</span>
+          </button>
+
+          <button type="button" id="btn-stop" class="btn-stop" disabled>
+            <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+              <rect x="5" y="5" width="10" height="10" rx="2" fill="currentColor"/>
+            </svg>
+            <span>停止</span>
+          </button>
+
+          <button type="button" id="btn-cli" class="btn-ghost" title="启动对应工具的命令行交互窗口 (run.bat)">
+            <span>命令行版</span>
+          </button>
+
+          <div class="output-path-hint" id="output-path-hint" title="当前引擎输出路径">
+            输出：<span id="output-path-text">downloads/</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右侧实时遥测与智能终端 -->
+      <section class="telemetry-deck" aria-label="实时遥测与输出日志">
+        <!-- 实时遥测仪 -->
+        <article class="glass-card telemetry-card">
+          <div class="telemetry-top">
+            <div class="stage-cluster">
+              <span class="live-indicator" id="live-indicator" data-state="idle"></span>
+              <div>
+                <div class="stage-caption">当前阶段</div>
+                <div class="stage-title" id="stage-text">待命就绪</div>
+              </div>
+            </div>
+            <span class="ep-badge" id="ep-progress-badge" hidden></span>
+          </div>
+
+          <div class="gauge-row">
+            <!-- 环形进度仪表 -->
+            <div class="ring-gauge" aria-hidden="true">
+              <svg viewBox="0 0 96 96" width="96" height="96">
+                <circle cx="48" cy="48" r="40" class="ring-track"/>
+                <circle cx="48" cy="48" r="40" class="ring-fill" id="ring-fill"/>
+              </svg>
+              <div class="ring-center">
+                <span id="pct-text" class="pct-value">0%</span>
+              </div>
+            </div>
+
+            <!-- 声波频谱可视化画布 -->
+            <div class="wave-panel">
+              <canvas id="wave-canvas" width="320" height="84" aria-hidden="true"></canvas>
+              <div class="video-title-overlay" id="video-title-text">粘贴链接后即可探测画质或直接开下</div>
+            </div>
+
+            <!-- 速度与体积读数 -->
+            <div class="metrics-col">
+              <div class="metric-item">
+                <span class="metric-label">下载速率</span>
+                <strong class="metric-val" id="speed-text">0.00 MB/s</strong>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">数据进度</span>
+                <strong class="metric-val" id="size-text">0.0 / 0.0 MB</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- 语义化原生进度条 -->
+          <div class="progress-wrapper">
+            <label id="progress-label" for="download-progress" class="sr-only">下载任务总进度</label>
+            <progress id="download-progress" max="100" value="0"></progress>
+          </div>
+        </article>
+
+        <!-- 智能日志终端 -->
+        <article class="glass-card console-card">
+          <div class="card-header compact">
+            <div class="console-title-wrap">
+              <h3>实时执行终端</h3>
+              <span class="console-badge" id="console-line-count">0 行</span>
+            </div>
+            <div class="console-actions">
+              <button type="button" id="btn-copy-log" class="btn-mini">复制日志</button>
+              <button type="button" id="btn-clear-log" class="btn-mini">清空</button>
+            </div>
+          </div>
+
+          <div class="console-body" id="log-viewport" tabindex="0" aria-label="下载日志输出">
+            <div id="log-output" class="log-lines"></div>
+            <div id="live-cr-line" class="log-line log-progress-live" hidden></div>
+          </div>
+        </article>
+
+        <!-- 最近下载产物 -->
+        <article class="glass-card files-card">
+          <div class="card-header compact">
+            <h3>输出目录最近文件</h3>
+            <button type="button" id="btn-open-output" class="btn-mini btn-mini-accent">打开输出文件夹</button>
+          </div>
+          <ul id="files-list" class="files-list">
+            <li class="files-empty">暂无已下载的媒体文件</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- 原生模态扫码登录弹窗 -->
+  <dialog id="qr-dialog" aria-labelledby="qr-dialog-title" closedby="any">
+    <div class="dialog-surface">
+      <div class="dialog-head">
+        <div>
+          <h2 id="qr-dialog-title">B 站扫码登录 · 获取 Cookie</h2>
+          <p class="dialog-sub">使用手机 B 站 App 扫描下方二维码，成功后自动同步双核配置</p>
+        </div>
+        <button type="button" id="btn-qr-close" class="btn-icon" aria-label="关闭扫码弹窗">✕</button>
+      </div>
+
+      <div class="qr-stage">
+        <div class="qr-frame" id="qr-frame">
+          <img id="qr-img" alt="B 站登录二维码" hidden>
+          <div id="qr-placeholder" class="qr-placeholder">正在向 B 站请求登录二维码…</div>
+          <div class="qr-scan-beam" aria-hidden="true"></div>
+        </div>
+
+        <div class="qr-status-box">
+          <div class="qr-status-pill" id="qr-status-pill">准备中…</div>
+          <pre id="qr-ascii" class="qr-ascii" hidden></pre>
+          <div id="qr-log" class="qr-log"></div>
+        </div>
+      </div>
+
+      <div class="dialog-foot">
+        <button type="button" id="btn-qr-retry" class="btn-ghost btn-sm">刷新二维码</button>
+        <button type="button" id="btn-qr-cancel" class="btn-chip">关闭</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 悬浮 Toast 提示区 -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
